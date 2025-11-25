@@ -24,8 +24,17 @@ All threads behave individually and pull from global memory.
 
 ### Performance Results
 
-| Dimension | Time (us) |
+| Dimension | Time (ms) |
 |-----------|-----------|
-| 
+| 512       | 1.5       |
+| 1024      | 5         |
+| 2048      | 28        |
+| 4096      | 165       |
+| 8192      | 1080      |
+
+This is a massive improvement over CPU / sing-threaded host code.
+But how could can it get? What is the top standard? How well does cuBLAS do here?
+
+
 
 
