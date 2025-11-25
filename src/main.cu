@@ -6,6 +6,7 @@
 #include <x86intrin.h>
 #include "host.cpp"
 #include "device.cu"
+#include "cublass.cpp"
 
 using namespace std;
 
@@ -49,10 +50,13 @@ int main() {
 
     cout << "Generated matrices" << endl;
 
+    cout << "Pre-warming" << endl;
+    cublassMatrixMultiply(matrixA, matrixB, matrixHostC, dimension);
+
     cout << "Starting host matrix multiplication..." << endl;
 
     auto start_tp = std::chrono::high_resolution_clock::now();
-    naiveDeviceMatrixMultiply(matrixA, matrixB, matrixHostC, dimension);
+    cublassMatrixMultiply(matrixA, matrixB, matrixHostC, dimension);
     auto end_tp = std::chrono::high_resolution_clock::now();
     auto elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_tp - start_tp).count();
     cout << "Completed host matrix multiplication." << endl;

@@ -34,6 +34,16 @@ All threads behave individually and pull from global memory.
 
 This is a massive improvement over CPU / sing-threaded host code.
 But how could can it get? What is the top standard? How well does cuBLAS do here?
+Below is a comparison with the naive device implementation above.
+
+| Dimension | Naive   | cuBLASS |
+| 32        | 0.2     | 0.5     |
+| 512       | 1.5     | 1.25    |
+| 2048      | 28      | 10      |
+| 8192      | 1080    | 165     |
+
+cuBLASS is higher for tiny matrices, likely due to library overhead, but on larger matrices, it crushes my naive implementation.
+Let's optimize!
 
 
 
