@@ -4,9 +4,9 @@ The goal of this project is to match (or beat) cuBLAS in matrix multiplication p
 
 ## 1. CPU/Host Multiplication
 
-Initial code uses serial (single-threaded) CPU code to perform the calculation
+Initial code uses serial (single-threaded) CPU code to perform the calculation.
 
-## Performance Results
+### Performance Results
 
 | Dimension | Time (ms) |
 |-----------|-----------|
@@ -15,6 +15,17 @@ Initial code uses serial (single-threaded) CPU code to perform the calculation
 | 512       | 430       |
 | 1024      | 4200      |
 
-At even a modest size of 1024x1024, CPU host multiplication is already at 4200ms
+At even a modest size of 1024x1024, CPU host multiplication is already at 4200ms.
+
+## 2. Device Naive Multiplication
+
+Device code that does not optimize on GPU shared memory.
+All threads behave individually and pull from global memory.
+
+### Performance Results
+
+| Dimension | Time (us) |
+|-----------|-----------|
+| 
 
 
