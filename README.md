@@ -6,3 +6,15 @@ The goal of this project is to match (or beat) cuBLAS in matrix multiplication p
 
 Initial code uses serial (single-threaded) CPU code to perform the calculation
 
+## Performance Results
+
+| Dimension | Time (ms) |
+|-----------|-----------|
+| 64        | 1.5       |
+| 256       | 53        |
+| 512       | 430       |
+| 1024      | 4200      |
+
+At even a modest size of 1024x1024, CPU host multiplication is already at 4200ms
+
+
