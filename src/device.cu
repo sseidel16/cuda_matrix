@@ -1,5 +1,7 @@
 #include <mma.h>
 
+using namespace std;
+
 using namespace nvcuda;
 
 __device__ float getElement(float *matrix, int row, int col, int dimension) {
@@ -85,7 +87,7 @@ __global__ void d_TensorDeviceMatrixMultiply(float *A, float *B, float *C, int d
 
     // a and b are FP16 and c is FP32 .. this is the best you can do and still get 16x16x16
     wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major> a_tile;
-    wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::col_major> b_tile;
+    wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major> b_tile;
     wmma::fragment<wmma::accumulator, 16, 16, 16, float> c_tile;
 
     // this fragment will live in registers until written to global memory

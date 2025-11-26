@@ -67,3 +67,7 @@ NVIDIA GPUs include tensor cores with warp-wide instructions that can do matrix 
 Our next iteration is a shared memory + tensor core with warp-wide mma (matrix multiplication and addition).
 This warp-wide instruction is available directly in the PTX ISA (wmma.mma).
 
+### Performance Results
+
+1. With 64x64 tiles, 16x64 slices loaded into shared memory, and 16x16x16 FP16 wmma, computation time is just 20% higher than cuBLASS. However, this leads to higher error than cuBLASS because it appears to preserve the full floating point computation. This comparison is not equal then.
+2. With 32x32 tiles, 32x32 slices loaded into shared memory, and 16x16x8 TF32 wmma, memory reads should coalesce easily per warp.
