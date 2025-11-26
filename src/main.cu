@@ -31,7 +31,7 @@ void verifyMatrix(float *matrix, float *expectedMatrix, int dimension) {
 
 int main() {
     // build some large matrices here
-    int dimension = 8192;
+    int dimension = 32;
 
     /* DEVICE HEAP MEMORY */
 

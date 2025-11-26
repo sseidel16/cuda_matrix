@@ -32,7 +32,7 @@ All threads behave individually and pull from global memory.
 | 4096      | 165       |
 | 8192      | 1080      |
 
-This is a massive improvement over CPU / sing-threaded host code.
+This is a massive improvement over CPU / single-threaded host code.
 But how could can it get? What is the top standard? How well does cuBLAS do here?
 Below is a comparison with the naive device implementation above.
 
@@ -45,6 +45,16 @@ Below is a comparison with the naive device implementation above.
 cuBLASS is higher for tiny matrices, likely due to library overhead, but on larger matrices, it crushes my naive implementation.
 Let's optimize!
 
+## 3. Device Shared Memory Multiplication
 
+This is very similar to the earlier naive device implementation, except thread blocks collaboratively load 16x16 tiles into shared memory, sync. and then utilize shared memory for calculation.
+For brevity. I am only including the 32 and 8192 dimensions.
 
+### Performance Results
+
+| Dimension | SharedM | Naive   | cuBLASS |
+| 32        | 0.15    | 0.2     | 0.5     |
+| 8192      | 770     | 1080    | 165     |
+
+## 4. Device Tensor Core Multiplication
 
