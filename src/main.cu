@@ -31,7 +31,7 @@ void verifyMatrix(float *matrix, float *expectedMatrix, int dimension) {
 
 int main() {
     // build some large matrices here
-    int dimension = 32;
+    int dimension = 64;
 
     /* DEVICE HEAP MEMORY */
 
@@ -73,6 +73,7 @@ int main() {
     verifyMatrix(matrixDeviceC, matrixHostC, dimension);
 
     float *tempC = new float[dimension * dimension];
+
     cout << "Starting shared mem device matrix multiplication..." << endl;
     start_tp = std::chrono::high_resolution_clock::now();
     memOptDeviceMatrixMultiply(matrixA, matrixB, tempC, dimension);
@@ -80,8 +81,17 @@ int main() {
     elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_tp - start_tp).count();
     cout << "Completed shared mem device matrix multiplication." << endl;
     cout << "Device multiply elapsed: " << (elapsed_ns / 1e6) << " ms" << endl;
-
     verifyMatrix(tempC, matrixDeviceC, dimension);
+
+    cout << "Starting tensor device matrix multiplication..." << endl;
+    start_tp = std::chrono::high_resolution_clock::now();
+    tensorDeviceMatrixMultiply(matrixA, matrixB, tempC, dimension);
+    end_tp = std::chrono::high_resolution_clock::now();
+    elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_tp - start_tp).count();
+    cout << "Completed tensor device matrix multiplication." << endl;
+    cout << "Device multiply elapsed: " << (elapsed_ns / 1e6) << " ms" << endl;
+    verifyMatrix(tempC, matrixDeviceC, dimension);
+
     delete[] tempC;
 
     // make sure we see gpu debug output

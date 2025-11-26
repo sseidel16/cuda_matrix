@@ -1,3 +1,7 @@
+#include <mma.h>
+
+using namespace nvcuda;
+
 __device__ float getElement(float *matrix, int row, int col, int dimension) {
     if (row >= 0 && col >= 0 && row < dimension && col < dimension) {
         return matrix[row * dimension + col];
@@ -45,7 +49,7 @@ __global__ void d_memOptDeviceMatrixMultiply(float *A, float *B, float *C, int d
     // For matrices not a multiple of tileDim may still need threads outside the matrix
     // because they contribute intermediate tiles
     float value = 0;
-    for (int tile = 0; tile * tileDim <= dimension; tile++) {
+    for (int tile = 0; tile * tileDim < dimension; tile++) {
         sharedA[threadIdx.y][threadIdx.x] = getSubElement(A, baseRow, tile * tileDim, threadIdx.y, threadIdx.x, dimension);
         sharedB[threadIdx.y][threadIdx.x] = getSubElement(B, tile * tileDim, baseCol, threadIdx.y, threadIdx.x, dimension);
 
@@ -60,6 +64,60 @@ __global__ void d_memOptDeviceMatrixMultiply(float *A, float *B, float *C, int d
     if (row < dimension && col < dimension) {
         C[row * dimension + col] = value;
     }
+}
+
+__global__ void d_TensorDeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
+    // a single warp will handle a 16x16 tile
+    // a thread block will handle a 64x64 tile
+    // so we have 4x4=16 warps per block
+    // threads are 1-dimensional: in a block 4x4x32=512 threads
+
+    const int tileDim = 16;
+    int baseRow = blockIdx.y * 64;
+    int baseCol = blockIdx.x * 64;
+    int warpId = threadIdx.x / 32;
+    int fragBaseRow = (warpId / 4) * tileDim;
+    int fragBaseCol = (warpId % 4) * tileDim;
+
+    // load into shared memory
+    __shared__ half sharedA[64][tileDim];
+    __shared__ half sharedB[tileDim][64];
+
+    // a and b are FP16 and c is FP32 .. this is the best you can do and still get 16x16x16
+    wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major> a_tile;
+    wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::col_major> b_tile;
+    wmma::fragment<wmma::accumulator, 16, 16, 16, float> c_tile;
+
+    // this fragment will live in registers until written to global memory
+    wmma::fill_fragment(c_tile, 0.0f);
+
+    for (int tile = 0; tile * tileDim < dimension; tile++) {
+        for (int memIdx = threadIdx.x; memIdx < 64 * 16; memIdx += blockDim.x) {
+            int tileRow, tileCol;
+
+            // slice of A
+            tileRow = memIdx / 16;
+            tileCol = memIdx % 16;
+            sharedA[tileRow][tileCol] = getSubElement(A, baseRow, tile * 16, tileRow, tileCol, dimension);
+
+            // slice of B
+            tileRow = memIdx / 64;
+            tileCol = memIdx % 64;
+            sharedB[tileRow][tileCol] = getSubElement(B, tile * 16, baseCol, tileRow, tileCol, dimension);
+        }
+
+        __syncthreads();
+
+        load_matrix_sync(a_tile, &sharedA[fragBaseRow][0], 16);
+        load_matrix_sync(b_tile, &sharedB[0][fragBaseCol], 64);
+
+        // mma: C = A x B + C
+        wmma::mma_sync(c_tile, a_tile, b_tile, c_tile);
+        __syncthreads();
+    }
+
+    float* const globalCPtr = &C[(baseRow + fragBaseRow) * dimension + baseCol + fragBaseCol];
+    store_matrix_sync(globalCPtr, c_tile, dimension, wmma::mem_row_major);
 }
 
 void mallocKernelMatrices(float **d_A, float **d_B, float **d_C, float *A, float *B, int dimension) {
@@ -107,3 +165,19 @@ void memOptDeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
     freeKernelMatrices(d_A, d_B, d_C, C, dimension);
 }
 
+void tensorDeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
+    float *d_A, *d_B, *d_C;
+    mallocKernelMatrices(&d_A, &d_B, &d_C, A, B, dimension);
+
+    if (dimension % 64 != 0) {
+        std::cerr << "Tensor core matrix multiply requires dimensions to be multiple of 64" << std::endl;
+        exit(1);
+    }
+
+    dim3 blockSize(4 * 4 * 32); // 4x4 warps of 32 threads each
+    dim3 gridSize(dimension / 64, dimension / 64);
+
+    d_TensorDeviceMatrixMultiply<<<gridSize, blockSize>>>(d_A, d_B, d_C, dimension);
+
+    freeKernelMatrices(d_A, d_B, d_C, C, dimension);
+}
