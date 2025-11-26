@@ -43,6 +43,7 @@ Below is a comparison with the naive device implementation above.
 | 8192      | 1080    | 165     |
 
 cuBLASS is higher for tiny matrices, likely due to library overhead, but on larger matrices, it crushes my naive implementation.
+Speed improvement for cuBLASS on the largest matrix multiplication time is down 85%.
 Let's optimize!
 
 ## 3. Device Shared Memory Multiplication
@@ -56,5 +57,11 @@ For brevity. I am only including the 32 and 8192 dimensions.
 | 32        | 0.15    | 0.2     | 0.5     |
 | 8192      | 770     | 1080    | 165     |
 
+We have optimized down 29%, but we have a long way still to go.
+
 ## 4. Device Tensor Core Multiplication
+
+NVIDIA GPUs include tensor cores with warp-wide instructions that can do matrix multiplication themselves.
+Our next iteration is a shared memory + tensor core with warp-wide mma (matrix multiplication and addition).
+This warp-wide instruction is available directly in the PTX ISA (wmma.mma).
 
