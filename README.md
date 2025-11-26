@@ -37,6 +37,7 @@ But how could can it get? What is the top standard? How well does cuBLAS do here
 Below is a comparison with the naive device implementation above.
 
 | Dimension | Naive   | cuBLASS |
+|-----------|---------|---------|
 | 32        | 0.2     | 0.5     |
 | 512       | 1.5     | 1.25    |
 | 2048      | 28      | 10      |
@@ -54,6 +55,7 @@ For brevity. I am only including the 32 and 8192 dimensions.
 ### Performance Results
 
 | Dimension | SharedM | Naive   | cuBLASS |
+|-----------|---------|---------|---------|
 | 32        | 0.15    | 0.2     | 0.5     |
 | 8192      | 770     | 1080    | 165     |
 
