@@ -153,8 +153,8 @@ __global__ void d_TensorTf32DeviceMatrixMultiply(float *A, float *B, float *C, i
             // slice of A
             tileRow = memIdx / 32;
             tileCol = memIdx % 32;
-            sharedA[tileRow][tileCol] = getSubElement(A, baseRow, tile * 32, tileRow, tileCol, dimension);
-            sharedB[tileRow][tileCol] = getSubElement(B, tile * 32, baseCol, tileRow, tileCol, dimension);
+            sharedA[tileRow][tileCol] = wmma::__float_to_tf32(getSubElement(A, baseRow, tile * 32, tileRow, tileCol, dimension));
+            sharedB[tileRow][tileCol] = wmma::__float_to_tf32(getSubElement(B, tile * 32, baseCol, tileRow, tileCol, dimension));
         }
 
         __syncthreads();
@@ -227,7 +227,7 @@ void memOptDeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
     freeKernelMatrices(d_A, d_B, d_C, C, dimension);
 }
 
-void tensorFp16DeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
+void tensorDeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
     float *d_A, *d_B, *d_C;
     mallocKernelMatrices(&d_A, &d_B, &d_C, A, B, dimension);
 
@@ -244,7 +244,7 @@ void tensorFp16DeviceMatrixMultiply(float *A, float *B, float *C, int dimension)
     freeKernelMatrices(d_A, d_B, d_C, C, dimension);
 }
 
-void tensorDeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
+void tensorTf32DeviceMatrixMultiply(float *A, float *B, float *C, int dimension) {
     float *d_A, *d_B, *d_C;
     mallocKernelMatrices(&d_A, &d_B, &d_C, A, B, dimension);
 
