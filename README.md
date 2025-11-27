@@ -36,15 +36,15 @@ This is a massive improvement over CPU / single-threaded host code.
 But how could can it get? What is the top standard? How well does cuBLAS do here?
 Below is a comparison with the naive device implementation above.
 
-| Dimension | Naive   | cuBLASS |
+| Dimension | Naive   | cuBLAS  |
 |-----------|---------|---------|
 | 32        | 0.2     | 0.5     |
 | 512       | 1.5     | 1.25    |
 | 2048      | 28      | 10      |
 | 8192      | 1080    | 165     |
 
-cuBLASS is higher for tiny matrices, likely due to library overhead, but on larger matrices, it crushes my naive implementation.
-Speed improvement for cuBLASS on the largest matrix multiplication time is down 85%.
+cuBLAS is higher for tiny matrices, likely due to library overhead, but on larger matrices, it crushes my naive implementation.
+Speed improvement for cuBLAS on the largest matrix multiplication time is down 85%.
 Let's optimize!
 
 ## 3. Device Shared Memory Multiplication
@@ -54,7 +54,7 @@ For brevity. I am only including the 32 and 8192 dimensions.
 
 ### Performance Results
 
-| Dimension | SharedM | Naive   | cuBLASS |
+| Dimension | SharedM | Naive   | cuBLAS  |
 |-----------|---------|---------|---------|
 | 32        | 0.15    | 0.2     | 0.5     |
 | 8192      | 770     | 1080    | 165     |
@@ -69,5 +69,5 @@ This warp-wide instruction is available directly in the PTX ISA (wmma.mma).
 
 ### Performance Results
 
-1. With 64x64 tiles, 16x64 slices loaded into shared memory, and 16x16x16 FP16 wmma, computation time is just 20% higher than cuBLASS. However, this leads to higher error than cuBLASS because it appears to preserve the full floating point computation. This comparison is not equal then.
-2. With 32x32 tiles, 32x32 slices loaded into shared memory, and 16x16x8 TF32 wmma, memory reads should coalesce easily per warp.
+1. With 64x64 tiles, 16x64 slices loaded into shared memory, and 16x16x16 FP16 wmma, computation time is just 20% higher than cuBLAS. However, this leads to higher error than cuBLAS because it appears to preserve the full floating point computation. This comparison is not equal then.
+2. With 32x32 tiles, 32x32 slices loaded into shared memory, and 16x16x8 TF32 wmma, memory reads should coalesce easily per warp. Interestingly after implementing, the error is almost identical to FP16. Additionally, latency has increased slightly. It appears that cuBLAS is not using tensor cores by default at all, and is using plain FP32 on cuda cores (crazy!) by default, and still going insanely fast. After manually enabling TF32 on cuBLAS, the error showed up the same as this implementation, and that latency barely decreased at all, which means for a 8192x8192 matrix, cuBLAS can effectively multiply it more accurately in ~ the same amount of time using FP32 instead of the fancy tensor cores.
