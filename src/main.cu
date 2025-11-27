@@ -31,7 +31,7 @@ void verifyMatrix(float *matrix, float *expectedMatrix, int dimension) {
 
 int main() {
     // build some large matrices here
-    int dimension = 64;
+    int dimension = 8192;
 
     /* DEVICE HEAP MEMORY */
 
@@ -91,25 +91,6 @@ int main() {
     cout << "Completed tensor device matrix multiplication." << endl;
     cout << "Device multiply elapsed: " << (elapsed_ns / 1e6) << " ms" << endl;
     verifyMatrix(tempC, matrixDeviceC, dimension);
-
-    dimension = 4;
-    cout << "Actual Matrix C:" << endl;
-    for (int cR = 0; cR < dimension; cR++) {
-        for (int cC = 0; cC < dimension; cC++) {
-            float val = tempC[cR * dimension + cC];
-            cout << val << " ";
-        }
-        cout << endl;
-    }
-
-    cout << "Expected Matrix C:" << endl;
-    for (int cR = 0; cR < dimension; cR++) {
-        for (int cC = 0; cC < dimension; cC++) {
-            float val = matrixDeviceC[cR * dimension + cC];
-            cout << val << " ";
-        }
-        cout << endl;
-    }
 
     delete[] tempC;
 

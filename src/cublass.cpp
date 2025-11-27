@@ -32,7 +32,10 @@ void cublassMatrixMultiply(float *A, float *B, float *C, int dimension) {
     cublasHandle_t handle;
     cublasCreate(&handle);
 
+    // force tensor cores with TF32 .. this will introduce some error, but help performance
     // cublasSetMathMode(handle, CUBLAS_TF32_TENSOR_OP_MATH);
+
+    // this appears to happen anyway on the default, although it is not technically the default
     // cublasSetMathMode(handle, CUBLAS_PEDANTIC_MATH); // forces true FP32
 
     cublasMath_t mode;
