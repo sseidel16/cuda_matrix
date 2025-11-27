@@ -32,6 +32,12 @@ void cublassMatrixMultiply(float *A, float *B, float *C, int dimension) {
     cublasHandle_t handle;
     cublasCreate(&handle);
 
+    // cublasSetMathMode(handle, CUBLAS_TF32_TENSOR_OP_MATH);
+    // cublasSetMathMode(handle, CUBLAS_PEDANTIC_MATH); // forces true FP32
+
+    cublasMath_t mode;
+    cublasGetMathMode(handle, &mode);
+    cout << "cuBLAS math mode: " << (int)mode << endl;
     // cuBLAS uses column-major, and this is row-major
     // from linear algebra C = A x B is the same as C^T = B^T x A^T
 

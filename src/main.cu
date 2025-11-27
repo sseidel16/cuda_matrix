@@ -92,6 +92,7 @@ int main() {
     cout << "Device multiply elapsed: " << (elapsed_ns / 1e6) << " ms" << endl;
     verifyMatrix(tempC, matrixDeviceC, dimension);
 
+    dimension = 4;
     cout << "Actual Matrix C:" << endl;
     for (int cR = 0; cR < dimension; cR++) {
         for (int cC = 0; cC < dimension; cC++) {
